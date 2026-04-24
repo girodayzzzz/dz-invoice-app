@@ -8,7 +8,6 @@
   --accent: #5f7bff;
   --accent-glow: rgba(95, 123, 255, 0.42);
   --danger: #ff5f7a;
-  --panel-elevated: #101726;
 }
 
 * {
@@ -18,7 +17,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: radial-gradient(circle at top right, rgba(95, 123, 255, 0.12), transparent 40%), var(--bg);
   color: var(--text);
   line-height: 1.45;
@@ -46,12 +45,25 @@ body {
 
 .panel-header h1 {
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 
 .panel-header p {
   color: var(--muted);
   margin-top: 0.4rem;
+}
+
+.control-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.control-card h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
 }
 
 .field-group {
@@ -89,6 +101,18 @@ select:focus {
   gap: 0.8rem;
 }
 
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.button-grid.two-col {
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 0;
+}
+
 .items-header {
   margin-top: 1.1rem;
   display: flex;
@@ -118,7 +142,8 @@ select:focus {
   cursor: pointer;
   border-radius: 10px;
   color: var(--text);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+  font-size: 0.87rem;
 }
 
 .btn:hover {
@@ -133,20 +158,24 @@ select:focus {
 .btn-primary {
   width: 100%;
   margin-top: 1rem;
-  padding: 0.84rem 1rem;
+  padding: 0.92rem 1rem;
   background: linear-gradient(120deg, #4f66ff, #6f4fff);
   box-shadow: 0 10px 30px rgba(95, 123, 255, 0.32);
+  font-weight: 700;
 }
 
 .btn-primary:hover:not(:disabled) {
   box-shadow: 0 16px 34px rgba(95, 123, 255, 0.52);
+  filter: brightness(1.05);
 }
 
 .btn-secondary,
-.remove-item {
-  padding: 0.55rem 0.76rem;
+.remove-item,
+.file-btn {
+  padding: 0.62rem 0.76rem;
   background: #242e45;
   border: 1px solid #33415e;
+  text-align: center;
 }
 
 .remove-item {
@@ -162,13 +191,23 @@ select:focus {
 
 .invoice-preview {
   width: 100%;
-  padding: 1.6rem;
+  padding: 1.7rem;
   border-radius: 16px;
   background: #ffffff;
   color: #1b2231;
   min-height: 520px;
   border: 1px solid #e4ebf5;
   box-shadow: 0 14px 40px rgba(22, 29, 45, 0.08);
+  transition: all 0.25s ease;
+}
+
+.template-modern {
+  border-top: 8px solid #5f7bff;
+}
+
+.template-bold {
+  border-top: 10px solid #111827;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f7ff 100%);
 }
 
 .invoice-top {
@@ -270,6 +309,55 @@ td:last-child {
   font-size: 1.05rem;
 }
 
+.saved-header {
+  margin-top: 0;
+}
+
+.saved-invoices-list {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.saved-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.saved-item-main {
+  border: 1px solid #33415e;
+  background: #1a2235;
+  color: #e9efff;
+  border-radius: 10px;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+}
+
+.saved-item-main strong,
+.saved-item-main span {
+  display: block;
+}
+
+.saved-item-main span {
+  color: #a9b5cf;
+  font-size: 0.8rem;
+}
+
+.empty-state {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.invoice-watermark {
+  margin-top: 2rem;
+  text-align: center;
+  color: #8c96a8;
+  font-size: 0.78rem;
+}
+
 .toast {
   position: fixed;
   bottom: 1rem;
@@ -283,6 +371,7 @@ td:last-child {
   transform: translateY(10px);
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 20;
 }
 
 .toast.show {
@@ -291,7 +380,7 @@ td:last-child {
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease;
+  animation: fadeIn 0.55s ease;
 }
 
 @keyframes fadeIn {
@@ -299,9 +388,16 @@ td:last-child {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 1100px) {
+  .button-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -317,10 +413,12 @@ td:last-child {
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .field-row,
   .item-row,
-  .invoice-party {
+  .invoice-party,
+  .button-grid,
+  .button-grid.two-col {
     grid-template-columns: 1fr;
   }
 
@@ -335,8 +433,15 @@ td:last-child {
   }
 
   .btn-primary,
-  .btn-secondary {
-    min-height: 44px;
+  .btn-secondary,
+  .file-btn {
+    min-height: 46px;
+  }
+
+  .sticky-download {
+    position: sticky;
+    bottom: 0.6rem;
+    z-index: 9;
   }
 
   .totals-card {
