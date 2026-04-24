@@ -1,5 +1,7 @@
 (() => {
   const STORAGE_KEY = 'invoice_studio_data_v1';
+  const MULTI_STORAGE_KEY = 'invoice_studio_multi_v1';
+  const BUSINESS_PROFILE_KEY = 'invoice_studio_business_profile_v1';
 
   const businessNameInput = document.getElementById('businessName');
   const clientNameInput = document.getElementById('clientName');
@@ -10,10 +12,22 @@
   const taxRateInput = document.getElementById('taxRate');
   const discountValueInput = document.getElementById('discountValue');
   const discountTypeInput = document.getElementById('discountType');
+  const templateSelect = document.getElementById('templateSelect');
   const itemsContainer = document.getElementById('itemsContainer');
+  const savedInvoicesList = document.getElementById('savedInvoicesList');
+
   const addItemBtn = document.getElementById('addItemBtn');
   const downloadBtn = document.getElementById('downloadBtn');
+  const autoNumberBtn = document.getElementById('autoNumberBtn');
+  const clearInvoiceBtn = document.getElementById('clearInvoiceBtn');
+  const duplicateInvoiceBtn = document.getElementById('duplicateInvoiceBtn');
+  const newInvoiceBtn = document.getElementById('newInvoiceBtn');
+  const saveBusinessProfileBtn = document.getElementById('saveBusinessProfileBtn');
+  const saveInvoiceFileBtn = document.getElementById('saveInvoiceFileBtn');
+  const loadInvoiceFileInput = document.getElementById('loadInvoiceFileInput');
+  const saveCurrentInvoiceBtn = document.getElementById('saveCurrentInvoiceBtn');
 
+  const previewRoot = document.getElementById('invoice-preview');
   const previewBusiness = document.getElementById('previewBusiness');
   const previewClient = document.getElementById('previewClient');
   const previewInvoiceNo = document.getElementById('previewInvoiceNo');
@@ -28,23 +42,99 @@
   const previewLogo = document.getElementById('previewLogo');
   const toast = document.getElementById('toast');
 
-  const state = {
-    businessName: '',
-    clientName: '',
-    invoiceNumber: generateInvoiceNumber(),
-    date: new Date().toISOString().split('T')[0],
-    currency: 'USD',
-    taxRate: '',
-    discountValue: '',
-    discountType: 'percent',
-    logo: '',
-    items: [{ description: '', price: '' }],
+  const TEMPLATE_CLASS_MAP = {
+    minimal: 'template-minimal',
+    modern: 'template-modern',
+    bold: 'template-bold',
   };
+
+  const state = createEmptyInvoice();
+  let savedInvoices = [];
+
+  function todayIso() {
+    return new Date().toISOString().split('T')[0];
+  }
 
   function generateInvoiceNumber() {
     const timestamp = Date.now().toString().slice(-6);
     const rand = Math.floor(100 + Math.random() * 900);
     return `INV-${timestamp}-${rand}`;
+  }
+
+  function createEmptyInvoice(overrides = {}) {
+    return {
+      businessName: '',
+      clientName: '',
+      invoiceNumber: generateInvoiceNumber(),
+      date: todayIso(),
+      currency: 'USD',
+      taxRate: '',
+      discountValue: '',
+      discountType: 'percent',
+      logo: '',
+      template: 'minimal',
+      items: [{ description: '', price: '' }],
+      ...overrides,
+    };
+  }
+
+  function getCurrentInvoiceData() {
+    return {
+      businessName: state.businessName,
+      clientName: state.clientName,
+      invoiceNumber: state.invoiceNumber,
+      date: state.date,
+      currency: state.currency,
+      taxRate: state.taxRate,
+      discountValue: state.discountValue,
+      discountType: state.discountType,
+      logo: state.logo,
+      template: state.template,
+      items: state.items.map((item) => ({
+        description: item.description || '',
+        price: item.price || '',
+      })),
+    };
+  }
+
+  function sanitizeInvoice(input) {
+    const fallback = createEmptyInvoice();
+    const safe = input && typeof input === 'object' ? input : {};
+
+    const items = Array.isArray(safe.items) && safe.items.length
+      ? safe.items.map((item) => ({
+          description: typeof item?.description === 'string' ? item.description : '',
+          price: typeof item?.price === 'number' || typeof item?.price === 'string' ? item.price : '',
+        }))
+      : fallback.items;
+
+    return {
+      businessName: typeof safe.businessName === 'string' ? safe.businessName : fallback.businessName,
+      clientName: typeof safe.clientName === 'string' ? safe.clientName : fallback.clientName,
+      invoiceNumber: typeof safe.invoiceNumber === 'string' && safe.invoiceNumber.trim()
+        ? safe.invoiceNumber
+        : fallback.invoiceNumber,
+      date: typeof safe.date === 'string' && safe.date ? safe.date : fallback.date,
+      currency: ['USD', 'EUR', 'GBP'].includes(safe.currency) ? safe.currency : fallback.currency,
+      taxRate: safe.taxRate ?? fallback.taxRate,
+      discountValue: safe.discountValue ?? fallback.discountValue,
+      discountType: safe.discountType === 'fixed' ? 'fixed' : 'percent',
+      logo: typeof safe.logo === 'string' ? safe.logo : fallback.logo,
+      template: ['minimal', 'modern', 'bold'].includes(safe.template) ? safe.template : fallback.template,
+      items,
+    };
+  }
+
+  function applyInvoice(invoiceData, { persistState = true } = {}) {
+    const sanitized = sanitizeInvoice(invoiceData);
+    Object.assign(state, sanitized);
+
+    syncFormWithState();
+    renderItemInputs();
+    renderPreview();
+    if (persistState) {
+      persist();
+    }
   }
 
   function formatCurrency(value) {
@@ -134,6 +224,11 @@
     });
   }
 
+  function setTemplateClass() {
+    previewRoot.classList.remove('template-minimal', 'template-modern', 'template-bold');
+    previewRoot.classList.add(TEMPLATE_CLASS_MAP[state.template] || 'template-minimal');
+  }
+
   function renderPreview() {
     previewBusiness.textContent = state.businessName || 'Your Business Name';
     previewClient.textContent = state.clientName || 'Client Name';
@@ -174,7 +269,48 @@
       previewLogo.classList.add('hidden');
     }
 
+    setTemplateClass();
     downloadBtn.disabled = !canDownload(totals.total);
+  }
+
+  function renderSavedInvoices() {
+    savedInvoicesList.innerHTML = '';
+
+    if (!savedInvoices.length) {
+      savedInvoicesList.innerHTML = '<p class="empty-state">No saved invoices yet.</p>';
+      return;
+    }
+
+    savedInvoices.forEach((invoice, index) => {
+      const row = document.createElement('div');
+      row.className = 'saved-item';
+
+      const info = document.createElement('button');
+      info.type = 'button';
+      info.className = 'saved-item-main';
+      info.innerHTML = `
+        <strong>${escapeHtml(invoice.invoiceNumber)}</strong>
+        <span>${escapeHtml(invoice.clientName || 'No client')} • ${escapeHtml(invoice.date || 'No date')}</span>
+      `;
+      info.addEventListener('click', () => {
+        applyInvoice(invoice);
+        showToast('Loaded saved invoice.');
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn remove-item';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', () => {
+        savedInvoices.splice(index, 1);
+        persistSavedInvoices();
+        renderSavedInvoices();
+        showToast('Saved invoice deleted.');
+      });
+
+      row.append(info, deleteBtn);
+      savedInvoicesList.appendChild(row);
+    });
   }
 
   function canDownload(total) {
@@ -188,7 +324,23 @@
   }
 
   function persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(getCurrentInvoiceData()));
+  }
+
+  function persistSavedInvoices() {
+    localStorage.setItem(MULTI_STORAGE_KEY, JSON.stringify(savedInvoices));
+  }
+
+  function hydrateSavedInvoices() {
+    const raw = localStorage.getItem(MULTI_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      savedInvoices = Array.isArray(parsed) ? parsed.map(sanitizeInvoice) : [];
+    } catch (error) {
+      console.warn('Failed to load multi-invoice data:', error);
+      savedInvoices = [];
+    }
   }
 
   function hydrateFromStorage() {
@@ -197,23 +349,26 @@
 
     try {
       const stored = JSON.parse(raw);
-      state.businessName = stored.businessName || '';
-      state.clientName = stored.clientName || '';
-      state.invoiceNumber = stored.invoiceNumber || generateInvoiceNumber();
-      state.date = stored.date || new Date().toISOString().split('T')[0];
-      state.currency = stored.currency || 'USD';
-      state.taxRate = stored.taxRate || '';
-      state.discountValue = stored.discountValue || '';
-      state.discountType = stored.discountType === 'fixed' ? 'fixed' : 'percent';
-      state.logo = stored.logo || '';
-      state.items = Array.isArray(stored.items) && stored.items.length
-        ? stored.items.map((item) => ({
-            description: item.description || '',
-            price: item.price || '',
-          }))
-        : [{ description: '', price: '' }];
+      applyInvoice(stored, { persistState: false });
     } catch (error) {
       console.warn('Failed to load saved invoice data:', error);
+    }
+  }
+
+  function hydrateBusinessProfile() {
+    const raw = localStorage.getItem(BUSINESS_PROFILE_KEY);
+    if (!raw) return;
+
+    try {
+      const profile = JSON.parse(raw);
+      if (typeof profile.businessName === 'string') {
+        state.businessName = profile.businessName;
+      }
+      if (typeof profile.logo === 'string') {
+        state.logo = profile.logo;
+      }
+    } catch (error) {
+      console.warn('Failed to load business profile:', error);
     }
   }
 
@@ -226,12 +381,107 @@
     taxRateInput.value = state.taxRate;
     discountValueInput.value = state.discountValue;
     discountTypeInput.value = state.discountType;
+    templateSelect.value = state.template;
   }
 
   function showToast(message) {
     toast.textContent = message;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function downloadInvoiceData() {
+    const dataStr = JSON.stringify(getCurrentInvoiceData(), null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${(state.invoiceNumber || 'invoice').replace(/\s+/g, '-')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Invoice JSON exported.');
+  }
+
+  function loadInvoiceDataFromFile(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || '{}'));
+        applyInvoice(parsed);
+        showToast('Invoice JSON loaded.');
+      } catch {
+        showToast('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function saveBusinessProfile() {
+    const profile = {
+      businessName: state.businessName,
+      logo: state.logo,
+    };
+    localStorage.setItem(BUSINESS_PROFILE_KEY, JSON.stringify(profile));
+    showToast('Business profile saved.');
+  }
+
+  function clearInvoice() {
+    const preserved = {
+      businessName: state.businessName,
+      logo: state.logo,
+      currency: state.currency,
+      template: state.template,
+    };
+    applyInvoice(createEmptyInvoice(preserved));
+    showToast('Invoice cleared.');
+  }
+
+  function duplicateInvoice() {
+    const duplicate = getCurrentInvoiceData();
+    duplicate.invoiceNumber = generateInvoiceNumber();
+    duplicate.date = todayIso();
+    applyInvoice(duplicate);
+    showToast('Invoice duplicated with new number/date.');
+  }
+
+  function createNewInvoice() {
+    const profileRaw = localStorage.getItem(BUSINESS_PROFILE_KEY);
+    let profile = {};
+    if (profileRaw) {
+      try {
+        profile = JSON.parse(profileRaw) || {};
+      } catch {
+        profile = {};
+      }
+    }
+
+    applyInvoice(createEmptyInvoice({
+      businessName: profile.businessName || '',
+      logo: profile.logo || '',
+      template: state.template,
+      currency: state.currency,
+    }));
+    showToast('Started new invoice.');
+  }
+
+  function saveCurrentInvoice() {
+    const invoice = sanitizeInvoice(getCurrentInvoiceData());
+    const existingIndex = savedInvoices.findIndex((entry) => entry.invoiceNumber === invoice.invoiceNumber);
+
+    if (existingIndex >= 0) {
+      savedInvoices[existingIndex] = invoice;
+      showToast('Saved invoice updated.');
+    } else {
+      savedInvoices.unshift(invoice);
+      showToast('Invoice saved to list.');
+    }
+
+    persistSavedInvoices();
+    renderSavedInvoices();
   }
 
   function downloadInvoicePdf() {
@@ -295,6 +545,11 @@
     doc.setFont('helvetica', 'bold');
     doc.text(`Total: ${formatCurrency(totals.total)}`, 170, y, { align: 'right' });
 
+    y = 286;
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generated by DZ Media', 105, y, { align: 'center' });
+
     doc.save(`${(state.invoiceNumber || 'invoice').replace(/\s+/g, '-')}.pdf`);
     showToast('Invoice downloaded successfully.');
   }
@@ -312,7 +567,7 @@
   });
 
   invoiceDateInput.addEventListener('change', (e) => {
-    state.date = e.target.value;
+    state.date = e.target.value || todayIso();
     renderPreview();
     persist();
   });
@@ -341,6 +596,12 @@
     persist();
   });
 
+  templateSelect.addEventListener('change', (e) => {
+    state.template = e.target.value;
+    renderPreview();
+    persist();
+  });
+
   logoInput.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -355,6 +616,22 @@
   });
 
   addItemBtn.addEventListener('click', () => addItemRow());
+  autoNumberBtn.addEventListener('click', () => {
+    state.invoiceNumber = generateInvoiceNumber();
+    invoiceNumberInput.value = state.invoiceNumber;
+    renderPreview();
+    persist();
+  });
+  clearInvoiceBtn.addEventListener('click', clearInvoice);
+  duplicateInvoiceBtn.addEventListener('click', duplicateInvoice);
+  newInvoiceBtn.addEventListener('click', createNewInvoice);
+  saveBusinessProfileBtn.addEventListener('click', saveBusinessProfile);
+  saveInvoiceFileBtn.addEventListener('click', downloadInvoiceData);
+  loadInvoiceFileInput.addEventListener('change', (e) => {
+    loadInvoiceDataFromFile(e.target.files?.[0]);
+    e.target.value = '';
+  });
+  saveCurrentInvoiceBtn.addEventListener('click', saveCurrentInvoice);
 
   downloadBtn.addEventListener('click', () => {
     const { total } = calculateTotals();
@@ -362,9 +639,12 @@
     downloadInvoicePdf();
   });
 
+  hydrateBusinessProfile();
   hydrateFromStorage();
+  hydrateSavedInvoices();
   syncFormWithState();
   renderItemInputs();
   renderPreview();
+  renderSavedInvoices();
   persist();
 })();
