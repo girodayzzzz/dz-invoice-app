@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SaaS Invoice Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app fade-in">
+      <aside class="panel form-panel">
+        <header class="panel-header">
+          <h1>Invoice Studio</h1>
+          <p>Create polished invoices instantly.</p>
+        </header>
+
+        <form id="invoice-form" novalidate>
+          <div class="field-group">
+            <label for="businessName">Business Name</label>
+            <input id="businessName" name="businessName" type="text" placeholder="Your company" />
+          </div>
+
+          <div class="field-group">
+            <label for="clientName">Client Name</label>
+            <input id="clientName" name="clientName" type="text" placeholder="Client or company" />
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="invoiceNumber">Invoice #</label>
+              <input id="invoiceNumber" name="invoiceNumber" type="text" readonly />
+            </div>
+            <div class="field-group">
+              <label for="invoiceDate">Date</label>
+              <input id="invoiceDate" name="invoiceDate" type="date" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="logoInput">Logo Upload</label>
+            <input id="logoInput" name="logoInput" type="file" accept="image/*" />
+          </div>
+
+          <div class="items-header">
+            <h2>Line Items</h2>
+            <button id="addItemBtn" class="btn btn-secondary" type="button">+ Add Item</button>
+          </div>
+
+          <div id="itemsContainer" class="items-container"></div>
+
+          <div class="actions">
+            <button id="downloadBtn" class="btn btn-primary" type="button" disabled>
+              Download Invoice
+            </button>
+          </div>
+        </form>
+      </aside>
+
+      <section class="panel preview-panel">
+        <div id="invoice-preview" class="invoice-preview">
+          <div class="invoice-top">
+            <img id="previewLogo" class="preview-logo hidden" alt="Business logo" />
+            <div class="invoice-meta">
+              <p id="previewInvoiceNo">Invoice #</p>
+              <p id="previewDate">Date</p>
+            </div>
+          </div>
+
+          <div class="invoice-party">
+            <div>
+              <h3>From</h3>
+              <p id="previewBusiness">Your Business Name</p>
+            </div>
+            <div>
+              <h3>Bill To</h3>
+              <p id="previewClient">Client Name</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody id="previewItems"></tbody>
+            </table>
+          </div>
+
+          <div class="invoice-total">
+            <span>Total</span>
+            <strong id="previewTotal">$0.00</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite">Invoice downloaded successfully.</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
