@@ -23,6 +23,57 @@ body {
   line-height: 1.45;
 }
 
+.top-nav {
+  background: #111;
+  border-bottom: 1px solid #222;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1.25rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.top-link {
+  color: #d8e2ff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.top-link:hover {
+  text-decoration: underline;
+}
+
+.hero {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1.2rem 1.25rem 0;
+}
+
+.hero h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.hero p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 .app {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -199,6 +250,8 @@ select:focus {
   border: 1px solid #e4ebf5;
   box-shadow: 0 14px 40px rgba(22, 29, 45, 0.08);
   transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .template-modern {
@@ -352,10 +405,34 @@ td:last-child {
 }
 
 .invoice-watermark {
-  margin-top: 2rem;
+  margin-top: auto;
+  padding-top: 1.2rem;
   text-align: center;
   color: #8c96a8;
   font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+.site-footer {
+  margin-top: 1rem;
+  padding: 0.9rem 1.25rem 1.2rem;
+  text-align: center;
+  border-top: 1px solid #222;
+  color: rgba(233, 239, 255, 0.6);
+  font-size: 0.82rem;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.site-footer a {
+  color: rgba(233, 239, 255, 0.85);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
 }
 
 .toast {
@@ -402,6 +479,14 @@ td:last-child {
 }
 
 @media (max-width: 960px) {
+  .top-nav {
+    padding: 0.55rem 1rem;
+  }
+
+  .hero {
+    padding: 1rem 1rem 0;
+  }
+
   .app {
     grid-template-columns: 1fr;
     padding: 1rem;
@@ -414,6 +499,36 @@ td:last-child {
 }
 
 @media (max-width: 640px) {
+  .top-nav {
+    min-height: 52px;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .brand {
+    font-size: 0.95rem;
+  }
+
+  .brand-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .top-link {
+    font-size: 0.82rem;
+  }
+
+  .hero {
+    padding: 0.85rem 0.8rem 0;
+  }
+
+  .hero h2 {
+    font-size: 1.05rem;
+  }
+
+  .hero p {
+    font-size: 0.86rem;
+  }
+
   .field-row,
   .item-row,
   .invoice-party,
@@ -446,5 +561,10 @@ td:last-child {
 
   .totals-card {
     max-width: 100%;
+  }
+
+  .site-footer {
+    padding: 0.8rem;
+    font-size: 0.76rem;
   }
 }
