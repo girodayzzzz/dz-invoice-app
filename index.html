@@ -47,6 +47,42 @@
             <input id="logoInput" name="logoInput" type="file" accept="image/*" />
           </div>
 
+          <div class="field-row">
+            <div class="field-group">
+              <label for="currency">Currency</label>
+              <select id="currency" name="currency">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="taxRate">Tax (%)</label>
+              <input id="taxRate" name="taxRate" type="number" min="0" step="0.01" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="discountValue">Discount</label>
+              <input
+                id="discountValue"
+                name="discountValue"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+              />
+            </div>
+            <div class="field-group">
+              <label for="discountType">Discount Type</label>
+              <select id="discountType" name="discountType">
+                <option value="percent">Percent (%)</option>
+                <option value="fixed">Fixed Amount</option>
+              </select>
+            </div>
+          </div>
+
           <div class="items-header">
             <h2>Line Items</h2>
             <button id="addItemBtn" class="btn btn-secondary" type="button">+ Add Item</button>
@@ -95,9 +131,23 @@
             </table>
           </div>
 
-          <div class="invoice-total">
-            <span>Total</span>
-            <strong id="previewTotal">$0.00</strong>
+          <div class="totals-card">
+            <div class="invoice-total-row">
+              <span>Subtotal</span>
+              <strong id="previewSubtotal">$0.00</strong>
+            </div>
+            <div class="invoice-total-row">
+              <span id="previewDiscountLabel">Discount</span>
+              <strong id="previewDiscount">-$0.00</strong>
+            </div>
+            <div class="invoice-total-row">
+              <span id="previewTaxLabel">Tax (0%)</span>
+              <strong id="previewTax">$0.00</strong>
+            </div>
+            <div class="invoice-total invoice-total-grand">
+              <span>Total</span>
+              <strong id="previewTotal">$0.00</strong>
+            </div>
           </div>
         </div>
       </section>
