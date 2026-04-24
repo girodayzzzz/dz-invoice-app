@@ -2,6 +2,7 @@
   const STORAGE_KEY = 'invoice_studio_data_v1';
   const MULTI_STORAGE_KEY = 'invoice_studio_multi_v1';
   const BUSINESS_PROFILE_KEY = 'invoice_studio_business_profile_v1';
+  const MAIN_SITE_LOGO_URL = 'https://girodayzzzz.github.io/DZ-Media/logo.png';
 
   const businessNameInput = document.getElementById('businessName');
   const clientNameInput = document.getElementById('clientName');
@@ -71,7 +72,7 @@
       taxRate: '',
       discountValue: '',
       discountType: 'percent',
-      logo: '',
+      logo: MAIN_SITE_LOGO_URL,
       template: 'minimal',
       items: [{ description: '', price: '' }],
       ...overrides,
