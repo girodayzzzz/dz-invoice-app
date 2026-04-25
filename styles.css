@@ -42,9 +42,14 @@ body {
 }
 
 .brand-logo {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+  padding: 4px;
+  border: 1px solid rgba(95, 123, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .top-link {
@@ -509,8 +514,8 @@ td:last-child {
   }
 
   .brand-logo {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
   }
 
   .top-link {
